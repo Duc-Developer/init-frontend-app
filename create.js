@@ -8,22 +8,22 @@ const cliProgress = require("cli-progress");
 
 const prompt = inquirer.createPromptModule();
 
-const TEMPLATES_DIR = path.join(__dirname, "templates");
+const CORE_DIR = path.join(__dirname, "core");
 
-function getTemplateNames() {
+function getCoreNames() {
   return fs
-    .readdirSync(TEMPLATES_DIR)
+    .readdirSync(CORE_DIR)
     .filter((file) =>
-      fs.lstatSync(path.join(TEMPLATES_DIR, file)).isDirectory()
+      fs.lstatSync(path.join(CORE_DIR, file)).isDirectory()
     );
 }
 
-function getTemplateDescriptions() {
+function getFrameworkDescriptions() {
   const descriptions = {};
-  const templateNames = getTemplateNames();
+  const framework = getCoreNames();
 
-  templateNames.forEach((templateName) => {
-    const packageJsonPath = path.join(TEMPLATES_DIR, templateName, "package.json");
+  framework.forEach((templateName) => {
+    const packageJsonPath = path.join(CORE_DIR, templateName, "package.json");
     if (fs.existsSync(packageJsonPath)) {
       const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
       descriptions[templateName] = packageJson.description ? ` - (${packageJson.description})` : "";
@@ -69,7 +69,7 @@ const DIRTY_FILES = [
 ];
 
 function copyTemplateFiles(templateName, targetDir, progressBar, totalFiles) {
-  const templatePath = path.join(TEMPLATES_DIR, templateName);
+  const templatePath = path.join(CORE_DIR, templateName);
   const files = fs.readdirSync(templatePath);
 
   files.forEach((file) => {
@@ -104,8 +104,8 @@ function copyTemplateFiles(templateName, targetDir, progressBar, totalFiles) {
 }
 
 async function createProject() {
-  const templateNames = getTemplateNames();
-  const templateDescriptions = getTemplateDescriptions();
+  const frameworkNames = getCoreNames();
+  const frameworkDescriptions = getFrameworkDescriptions();
 
   console.log(`
   ===================================================================
@@ -117,16 +117,16 @@ async function createProject() {
   ===================================================================
   `);
 
-  const choices = templateNames.map((name) => ({
-    name: `${name}${templateDescriptions[name]}`,
+  const choices = frameworkNames.map((name) => ({
+    name: `${name}${frameworkDescriptions[name]}`,
     value: name,
   }));
 
   const answers = await prompt([
     {
       type: "list",
-      name: "template",
-      message: "Select a template to generate the project:",
+      name: "framework",
+      message: "Select a framework to generate the project:",
       choices,
     },
     {
@@ -144,7 +144,7 @@ async function createProject() {
   ]);
 
   const targetDir = path.join(process.cwd(), answers.projectName);
-  const selectedTemplate = answers.template;
+  const selectedFramework = answers.framework;
 
   if (fs.existsSync(targetDir)) {
     console.error("Directory already exists! Please choose a different name.");
@@ -153,7 +153,7 @@ async function createProject() {
 
   fs.mkdirSync(targetDir);
 
-  const totalFiles = countFiles(path.join(TEMPLATES_DIR, selectedTemplate));
+  const totalFiles = countFiles(path.join(CORE_DIR, selectedFramework));
   const progressBar = new cliProgress.SingleBar(
     {
       format: "Generating [{bar}] {percentage}% | {value}/{total} files",
@@ -162,13 +162,13 @@ async function createProject() {
   );
 
   progressBar.start(totalFiles, 0);
-  copyTemplateFiles(selectedTemplate, targetDir, progressBar, totalFiles);
+  copyTemplateFiles(selectedFramework, targetDir, progressBar, totalFiles);
   progressBar.stop();
   
   generateGitIgnore(targetDir);
 
   console.log(
-    `Project "${answers.projectName}" created from template "${selectedTemplate}"`
+    `Project "${answers.projectName}" created from template "${selectedFramework}"`
   );
 
   if (answers.installDependencies) {
