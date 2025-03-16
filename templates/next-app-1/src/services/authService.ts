@@ -2,19 +2,23 @@ import { BaseResponse } from '@models/index';
 import { FormLogin, FormLoginResponse, UserInfo } from '@models/auth';
 import { BaseService } from './baseService';
 
-const endpoint = 'auth';
+export const AUTH_API_SERVICE = {
+    ROOT: 'auth',
+    LOGIN: '/login',
+    ABOUT_ME: '/me',
+}
 
 class AuthService extends BaseService<BaseResponse> {
     constructor() {
-        super(endpoint);
+        super(AUTH_API_SERVICE.ROOT);
     }
 
     async login(data: FormLogin) {
-        return this.post<FormLoginResponse>(data, { url: `${endpoint}/login` });
+        return this.post<FormLoginResponse>(data, { url: AUTH_API_SERVICE.LOGIN });
     }
 
     async getMyProfile() {
-        this.get<BaseResponse<UserInfo>>(`${endpoint}/me`);
+        this.get<BaseResponse<UserInfo>>(AUTH_API_SERVICE.ABOUT_ME);
     }
 }
 
