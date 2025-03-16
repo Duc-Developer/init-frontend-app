@@ -7,7 +7,7 @@ const bundleAnalyzer = withBundleAnalyzer({
 });
 
 const nextConfig: NextConfig = {
-  distDir: 'build',
+  output: "standalone",
   reactStrictMode: true,
   sassOptions: {
     includePaths: ['./src'],

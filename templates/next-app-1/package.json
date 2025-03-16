@@ -1,7 +1,7 @@
 {
   "name": "next-app-template",
   "version": "0.1.0",
-  "description": "Next.js app template using bun with Scss, TailwindCSS, axios, react-query",
+  "description": "Next.js app template using Scss, TailwindCSS, axios, react-query",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -10,7 +10,8 @@
     "lint": "next lint"
   },
   "engines": {
-    "bun": "^1.2.0"
+    "node": "^20.18.3",
+    "npm": "10.8.2"
   },
   "dependencies": {
     "@next/bundle-analyzer": "^15.2.1",

@@ -1,16 +1,14 @@
-version: '3'
+version: "3.8"
 
 services:
-  frontend:
-    container_name: "frontend"
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-    command: yarn dev
+  nextjs:
     ports:
-      - "4006:4006"
-    stdin_open: true
-    volumes:
-      - ./:/app
-      - /app/node_modules
+      - 4006:4006
+    container_name: frontend
+    image: frontend:latest
     restart: always
+    build:
+      context: ./
+      dockerfile: Dockerfile  
+    environment:
+      ANALYZE: false

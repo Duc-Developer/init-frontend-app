@@ -1,45 +1,39 @@
-# 1. Build
-FROM oven/bun:1 AS base
-WORKDIR /usr/src/app
+FROM node:20.13.1-alpine AS base
+FROM base AS deps
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
 
-# install dependencies into temp directory
-# this will cache them and speed up future builds
-FROM base AS install
-RUN mkdir -p /temp/dev
-COPY package.json bun.lock /temp/dev/
-RUN cd /temp/dev && bun install --frozen-lockfile
+COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
+RUN npm run install
 
-# install with --production (exclude devDependencies)
-RUN mkdir -p /temp/prod
-COPY package.json bun.lock /temp/prod/
-RUN cd /temp/prod && bun install --frozen-lockfile --production
 
-# copy node_modules from temp directory
-# then copy all (non-ignored) project files into the image
-FROM base AS prerelease
-COPY --from=install /temp/dev/node_modules node_modules
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# [optional] tests & build
-ENV NODE_ENV=production
-RUN bun test
-RUN bun run build
+RUN npm run build
 
-# copy production dependencies and source code into final image
-FROM base AS release
-COPY --from=install /temp/prod/node_modules node_modules
-COPY --from=prerelease /usr/src/app/build build
-COPY --from=prerelease /usr/src/app/public public
-COPY --from=prerelease /usr/src/app/package.json .
-COPY --from=prerelease /usr/src/app/bun.lockb .
+FROM base AS runner
+WORKDIR /app
 
-# 2. Serve
-FROM nginx:stable-alpine
-WORKDIR /usr/share/nginx/html
-# Set root for nginx
-COPY --from=release /usr/src/app/build /usr/share/nginx/html
-COPY --from=release /usr/src/app/nginx/nginx.conf /etc/nginx/conf.d/default.conf
+ENV NODE_ENV dev
 
-USER bun
-EXPOSE 3000/tcp
-CMD ["bun", "run", "start"]
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+COPY --from=builder /app/public ./public
+
+RUN mkdir .next
+RUN chown nextjs:nodejs .next
+
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder /app/public ./public
+
+USER nextjs
+
+EXPOSE 4006
+ENV PORT 4006
+ENV HOSTNAME "0.0.0.0"
+CMD ["node", "server.js"]

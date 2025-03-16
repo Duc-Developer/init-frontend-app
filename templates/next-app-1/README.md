@@ -1,9 +1,10 @@
 # Introduction
-This is Nextjs's template using `bun`. It's template generating by `create-frontend-app`.
+This is Nextjs's template using `npm`. It's template generating by `create-frontend-app`.
 U can see more template [here](https://github.com/Duc-Developer/init-frontend-app)
 
 ## Dependencies
-required bun >=1.2.0
+@required -  node >= 20.18.3
+@required - npm 10.8.2
 
 | Package                  | Version  |
 |--------------------------|----------|
@@ -20,14 +21,19 @@ Create your `.env`. You can refer keys in `.env.example`
 cp .env.example .env
 ```
 
+Installation
+```bash
+npm run install
+```
+
 For dev
 ```bash
-bun dev
+npm run dev
 ```
 
 For build
 ```bash
-bun build
+npm run build
 ```
 
 Using docker
